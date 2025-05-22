@@ -71,40 +71,52 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, currentSession) => {
-        const previousUser = user; // Capture user state before it's updated by this event
-        const currentUser = currentSession?.user ?? null;
+        const incomingUser = currentSession?.user ?? null;
 
-        // Check if email was just verified
-        if (currentUser && currentUser.email_confirmed_at && (!previousUser || !previousUser.email_confirmed_at)) {
-          toast.success("Email successfully verified!");
-        }
-
-        // Update session and user state
-        setSession(currentSession);
-        setUser(currentUser);
-        
-        if (event === 'SIGNED_OUT') {
-          setProfile(null);
-          // If signed out, redirect to auth page
-          setIsLoading(false);
-          navigate('/auth');
-        } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-          setIsLoading(false);
-
-          // If user exists, fetch their profile
-          if (currentSession?.user) {
-            // Use setTimeout to allow current auth event processing to complete before fetching profile
-            setTimeout(() => {
-              fetchProfile(currentSession.user.id);
-            }, 0);
+        // Update user state using functional update to access previous state correctly
+        setUser(prevUser => {
+          let emailJustVerified = false;
+          // Check if email was just verified by comparing with prevUser
+          if (incomingUser && incomingUser.email_confirmed_at && prevUser && prevUser.id === incomingUser.id && !prevUser.email_confirmed_at) {
+            toast.success("Email successfully verified!");
+            emailJustVerified = true;
           }
-          
-          // If signed in, redirect to home page
-          if (event === 'SIGNED_IN' && window.location.pathname === '/auth') {
-            if (currentUser?.email_confirmed_at) { // Only redirect if email is confirmed
-              navigate('/');
+
+          // Handle SIGNED_IN specific toasts
+          if (event === 'SIGNED_IN') {
+            if (incomingUser?.email_confirmed_at && !emailJustVerified) {
+              // Show "Successfully logged in!" only if email is confirmed AND wasn't just verified in this event.
+              toast.success("Successfully logged in!");
             }
           }
+          return incomingUser; // New user state
+        });
+
+        // Update session state (doesn't depend on previous session state for logic here)
+        setSession(currentSession);
+        
+        // Handle events
+        if (event === 'SIGNED_OUT') {
+          setProfile(null);
+          setIsLoading(false);
+          navigate('/auth');
+        } else if (event === 'SIGNED_IN') {
+          setIsLoading(false);
+          if (incomingUser) {
+            setTimeout(() => fetchProfile(incomingUser.id), 0);
+          }
+          if (window.location.pathname === '/auth' && incomingUser?.email_confirmed_at) {
+            navigate('/');
+          }
+        } else if (event === 'USER_UPDATED' || event === 'TOKEN_REFRESHED') {
+          setIsLoading(false);
+          if (incomingUser) {
+            // For TOKEN_REFRESHED, profile fetch might be optional if user data hasn't changed.
+            // However, fetching ensures consistency if the token refresh also updated user details.
+            setTimeout(() => fetchProfile(incomingUser.id), 0);
+          }
+          // The "Email successfully verified!" toast is handled within setUser's functional update
+          // if USER_UPDATED was due to email verification.
         }
       }
     );
@@ -112,10 +124,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     // Check for existing session
     supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
       setSession(currentSession);
-      setUser(currentSession?.user ?? null);
+      const initialUser = currentSession?.user ?? null;
+      setUser(initialUser);
       
-      if (currentSession?.user) {
-        fetchProfile(currentSession.user.id);
+      if (initialUser) {
+        fetchProfile(initialUser.id);
       }
       
       setIsLoading(false);
@@ -129,7 +142,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return () => {
       subscription.unsubscribe();
     };
-  }, [navigate, user]);
+  // Removed 'user' from dependencies to prevent useEffect from re-running excessively
+  // when 'user' state is updated within the effect itself.
+  }, [navigate]);
 
   const signUp = async (email: string, password: string) => {
     // Clean up existing auth state first
