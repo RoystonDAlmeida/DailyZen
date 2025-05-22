@@ -148,7 +148,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     });
     
     if (error) {
-      toast.error(`Signup failed: ${error.message}`);
+      if (error.message.includes("User already registered")) {
+        // This error typically means the email is registered (often for a verified user).
+        toast.error("This email is already registered. Please try signing in.");
+      } else {
+        toast.error(`Signup failed: ${error.message}`);
+      }
       throw error;
     }
     
