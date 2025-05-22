@@ -1,5 +1,5 @@
 
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Session, User } from "@supabase/supabase-js";
 import { useNavigate } from "react-router-dom";
@@ -45,34 +45,46 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [profile, setProfile] = useState<ProfileData | null>(null);
+  const profileFetchedForUserIdRef = useRef<string | null>(null);
   const navigate = useNavigate();
 
   // Fetch user profile data
-  const fetchProfile = async (userId: string) => {
+  const fetchProfileCallback = useCallback(async (userId: string) => {
     try {
       const { data, error } = await supabase
         .from('profiles')
         .select('slack_webhook_url')
         .eq('id', userId)
         .single();
-
+  
       if (error) {
-        console.error("Error fetching profile:", error);
+        console.error("Error fetching profile:", error.message);
+        setProfile(null); // Clear profile on error
+        // If the fetch failed for the user ID currently in the ref, clear the ref
+        // to allow retries for this user.
+        if (profileFetchedForUserIdRef.current === userId) {
+          profileFetchedForUserIdRef.current = null;
+        }
         return;
       }
-
+  
       setProfile(data || { slack_webhook_url: null });
+      profileFetchedForUserIdRef.current = userId; // Mark profile as successfully fetched for this user
     } catch (err) {
-      console.error("Failed to fetch profile:", err);
+      console.error("Failed to fetch profile (catch):", err);
+      setProfile(null); // Clear profile on error
+      if (profileFetchedForUserIdRef.current === userId) {
+        profileFetchedForUserIdRef.current = null;
+      }
     }
-  };
+  }, []); // supabase client is stable, setProfile is stable.
 
   useEffect(() => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, currentSession) => {
         const incomingUser = currentSession?.user ?? null;
-
+  
         // Update user state using functional update to access previous state correctly
         setUser(prevUser => {
           let emailJustVerified = false;
@@ -81,11 +93,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             toast.success("Email successfully verified!");
             emailJustVerified = true;
           }
-
+  
           // Handle SIGNED_IN specific toasts
           if (event === 'SIGNED_IN') {
-            if (incomingUser?.email_confirmed_at && !emailJustVerified) {
-              // Show "Successfully logged in!" only if email is confirmed AND wasn't just verified in this event.
+            // Show "Successfully logged in!" only if it's a new sign-in (no previous user),
+            // email is confirmed, AND email wasn't *just* verified in this event.
+            if (!prevUser && incomingUser?.email_confirmed_at && !emailJustVerified) {
               toast.success("Successfully logged in!");
             }
           }
@@ -98,37 +111,60 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         // Handle events
         if (event === 'SIGNED_OUT') {
           setProfile(null);
+          profileFetchedForUserIdRef.current = null;
           setIsLoading(false);
           navigate('/auth');
-        } else if (event === 'SIGNED_IN') {
+        } else if (incomingUser) { // Covers SIGNED_IN, USER_UPDATED, TOKEN_REFRESHED with a user
           setIsLoading(false);
-          if (incomingUser) {
-            setTimeout(() => fetchProfile(incomingUser.id), 0);
+          const newUserId = incomingUser.id;
+          
+          let doFetchProfile = false;
+          if (newUserId !== profileFetchedForUserIdRef.current) {
+            // User ID has changed, or profile was never successfully fetched for this ID (ref is different or null)
+            doFetchProfile = true;
+          } else if (profile === null) {
+            // User ID is the same as last successful fetch, but current profile state is null
+            // (e.g., fetchProfileCallback had an error after setting the ref, or ref was set but setProfile is pending/failed).
+            // So, we should try to fetch again.
+            doFetchProfile = true;
           }
+
+          // Overrides for events where we want to be conservative about refetching:
+          // If profile is already loaded for this user (ref matches and profile state is not null),
+          // then TOKEN_REFRESHED or USER_UPDATED should not trigger a new fetch.
+          if ((event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') &&
+              newUserId === profileFetchedForUserIdRef.current &&
+              profile !== null) {
+            doFetchProfile = false;
+          }
+
+          if (doFetchProfile) {
+            fetchProfileCallback(newUserId);
+          }
+          
           if (window.location.pathname === '/auth' && incomingUser?.email_confirmed_at) {
             navigate('/');
           }
-        } else if (event === 'USER_UPDATED' || event === 'TOKEN_REFRESHED') {
-          setIsLoading(false);
-          if (incomingUser) {
-            // For TOKEN_REFRESHED, profile fetch might be optional if user data hasn't changed.
-            // However, fetching ensures consistency if the token refresh also updated user details.
-            setTimeout(() => fetchProfile(incomingUser.id), 0);
-          }
-          // The "Email successfully verified!" toast is handled within setUser's functional update
-          // if USER_UPDATED was due to email verification.
+        } else if (event !== 'SIGNED_OUT') { // No incomingUser and not a SIGNED_OUT event
+          setIsLoading(false); // Ensure loading is false for other events without a user
         }
       }
     );
 
     // Check for existing session
-    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
+    supabase.auth.getSession().then(async ({ data: { session: currentSession } }) => {
       setSession(currentSession);
       const initialUser = currentSession?.user ?? null;
       setUser(initialUser);
       
       if (initialUser) {
-        fetchProfile(initialUser.id);
+        // Fetch profile if not already fetched for this user OR if profile state is null
+        if (initialUser.id !== profileFetchedForUserIdRef.current || profile === null) {
+          await fetchProfileCallback(initialUser.id);
+        }
+      } else {
+        setProfile(null); // No initial user, ensure profile is null
+        profileFetchedForUserIdRef.current = null; // and ref is cleared
       }
       
       setIsLoading(false);
@@ -142,9 +178,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return () => {
       subscription.unsubscribe();
     };
-  // Removed 'user' from dependencies to prevent useEffect from re-running excessively
-  // when 'user' state is updated within the effect itself.
-  }, [navigate]);
+  // `user` and `profile` state are intentionally omitted from dependencies to prevent re-subscribing onAuthStateChange.
+  // Logic within the effect uses `incomingUser` from the event, functional `setUser`, and `profileFetchedForUserIdRef`.
+  }, [navigate, fetchProfileCallback]);
 
   const signUp = async (email: string, password: string) => {
     // Clean up existing auth state first
