@@ -28,6 +28,7 @@ const Index = () => {
   
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [activeTodo, setActiveTodo] = useState<Todo | undefined>(undefined);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Add state for sidebar
   const [activeView, setActiveView] = useState<'all' | 'active' | 'completed'>('all');
   
   const { toast } = useToast();
@@ -66,13 +67,15 @@ const Index = () => {
   
   return (
     <div className="min-h-screen flex">
-      <SidebarProvider>
+      <SidebarProvider open={isSidebarOpen} onOpenChange={setIsSidebarOpen}> {/* Control sidebar state */}
         <AppSidebar 
           onAddTodo={handleAddTodo} 
           activeTodos={activeTodos} 
           completedTodos={completedTodos}
           activeView={activeView}
           setActiveView={setActiveView}
+          // Pass setIsSidebarOpen to AppSidebar
+          closeSidebar={() => setIsSidebarOpen(false)} 
           user={user}
           onSignOut={signOut}
         />
@@ -80,7 +83,7 @@ const Index = () => {
           <div className="max-w-4xl mx-auto"> {/* Replaces container for more control */}
             <header className="flex items-center mb-6 border-b border-border pb-4 w-full"> {/* Ensure header takes full width */}
               {isMobile && (
-                <SidebarTrigger className="mr-3 h-10 w-10" />
+                <SidebarTrigger className="mr-3 h-10 w-10" onClick={() => setIsSidebarOpen(true)} />
               )}
               <div className={`flex-1 flex flex-wrap ${isMobile ? 'flex-col items-start' : 'justify-between items-center'} gap-y-2`}>
                 <div className={`${isMobile ? 'w-full' : ''}`}> {/* Ensure text block takes full width on mobile if needed */}
@@ -108,7 +111,7 @@ const Index = () => {
             
             {!isMobile && (
               <div className="my-6">
-                <SidebarTrigger className="h-10 w-10" />
+                <SidebarTrigger className="h-10 w-10" onClick={() => setIsSidebarOpen(o => !o)} />
               </div>
             )}
             
