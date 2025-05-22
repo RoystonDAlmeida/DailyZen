@@ -59,7 +59,7 @@ export function TodoItem({ todo, onToggleComplete, onEdit, onDelete }: TodoItemP
           )}
           
           <div className="text-xs text-muted-foreground mt-2">
-            {formatDate(todo.updatedAt)}
+            {formatDate(todo.updated_at)}
           </div>
         </div>
         
