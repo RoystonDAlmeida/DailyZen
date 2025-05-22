@@ -1,35 +1,58 @@
-# Daily Zen Todos
+# DailyZen
 
 **Live Application:** [https://daily-zen-sigma.vercel.app/](https://daily-zen-sigma.vercel.app/)
 
 A simple and calming to-do application designed to help you manage your tasks with a touch of zen. Built with React, Vite, TypeScript, Tailwind CSS, shadcn/ui, and Supabase.
 
-## Features
+<p align="center">
+  <img src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React"/>
+  <img src="https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white" alt="Vite"/>
+  <img src="https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript"/>
+  <img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind CSS"/>
+  <img src="https://img.shields.io/badge/Supabase-3FCF8E?style=for-the-badge&logo=supabase&logoColor=white" alt="Supabase"/>
+  <img src="https://img.shields.io/badge/Google%20Gemini-4285F4?style=for-the-badge&logo=google&logoColor=white" alt="Google Gemini"/>
+  <img src="https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Vercel"/>
+</p>
 
-*   User authentication (Sign up, Sign in, Sign out)
-*   Create, Read, Update, Delete (CRUD) for tasks
-*   Task completion status
-*   User profile page
-*   Clean, minimalist UI focused on productivity and calm
-*   Responsive design with a fixed sidebar on larger screens
-*   Toast notifications for user actions
+## 📜 Table of Contents
+- [DailyZen](#dailyzen)
+  - [📜 Table of Contents](#-table-of-contents)
+  - [Features](#features)
+  - [Tech Stack](#tech-stack)
+  - [Prerequisites](#prerequisites)
+  - [Getting Started / Local Setup](#getting-started--local-setup)
+  - [Supabase Setup](#supabase-setup)
+  - [Deployment to Vercel](#deployment-to-vercel)
+  - [Design and Architecture Decisions](#design-and-architecture-decisions)
+  - [Slack and LLM Integration](#slack-and-llm-integration)
+  - [Contributing](#contributing)
+  - [License](#license)
+
+## Features
+*   🔑 User authentication (Sign up, Sign in, Sign out)
+*   📝 Create, Read, Update, Delete (CRUD) for tasks
+*   ✅ Task completion status
+*   👤 User profile page
+*   ✨ Clean, minimalist UI focused on productivity and calm
+*   📱💻 Responsive design with a fixed sidebar on larger screens
+*   🔔 Toast notifications for user actions
 
 ## Tech Stack
 
-*   **Frontend:** React, Vite, TypeScript
-*   **Routing:** React Router
-*   **Data Fetching/Caching:** TanStack Query (React Query)
-*   **Styling:** Tailwind CSS
-*   **UI Components:** [shadcn/ui](https://ui.shadcn.com/) (Toaster, Tooltip, Sonner, etc.)
-*   **Backend & Database:** [Supabase](https://supabase.com/) (Authentication, PostgreSQL, Edge Functions)
-*   **Deployment:** [Vercel](https://vercel.com/)
+*   **Frontend:** ⚛️ React, ⚡️ Vite, 🔷 TypeScript
+*   **Routing:** 🔗 React Router
+*   **Data Fetching/Caching:** 🔄 TanStack Query (React Query)
+*   **Styling:** 🌬️ Tailwind CSS
+*   **UI Components:** 🧩 [shadcn/ui](https://ui.shadcn.com/) (Toaster, Tooltip, Sonner, etc.)
+*   **Backend & Database:** 🔥 [Supabase](https://supabase.com/) (Authentication, PostgreSQL, Edge Functions)
+*   **Deployment:** ▲ [Vercel](https://vercel.com/)
 
 ## Prerequisites
 
-*   Node.js (v18.x or later recommended)
-*   npm, yarn, or pnpm
-*   A Supabase account (free tier is sufficient to get started)
-*   A Vercel account (for deployment)
+*   🟢 Node.js (v18.x or later recommended)
+*   📦 npm, yarn, or pnpm
+*   🔥 A Supabase account (free tier is sufficient to get started)
+*   ▲ A Vercel account (for deployment)
 
 ## Getting Started / Local Setup
 
@@ -89,8 +112,8 @@ Follow these instructions to get the project running on your local machine.
 *   If you haven't already, create a new project on Supabase.
 *   Navigate to your project's dashboard.
 *   Go to **Project Settings** (the gear icon in the left sidebar).
-*   Under the **API** section, you'll find your **Project URL** (for `VITE_SUPABASE_URL`) and the **anon public key** (for `VITE_SUPABASE_ANON_KEY`).
-*   **Database Schema:**
+*   Under the **API** 🔑 section, you'll find your **Project URL** (for `VITE_SUPABASE_URL`) and the **anon public key** (for `VITE_SUPABASE_ANON_KEY`).
+*   **📊 Database Schema:**
     *   You'll need a `todos` table. A basic schema might include:
         *   `id` (uuid, primary key, default: `uuid_generate_v4()`)
         *   `user_id` (uuid, foreign key to `auth.users.id`, default: `auth.uid()`)
@@ -105,7 +128,7 @@ Follow these instructions to get the project running on your local machine.
         *   `created_at` (timestamp with time zone, default: `now()`)
         *   `slack_webhook_url` (text, Default - NULL) - Stores the user's Slack webhook URL for potential notifications.
 
-*   **Row Level Security (RLS):**
+*   **🛡️ Row Level Security (RLS):**
     *   It is **CRITICAL** to enable RLS on your tables (especially `todos` and `profiles`).
     *   Define policies to ensure users can only access and modify their own data.
     *   Example RLS policy for `todos` table (select own todos):
@@ -162,28 +185,35 @@ Follow these instructions to get the project running on your local machine.
 *   **Component Structure:**
     *   `src/components/ui/`: Contains components from `shadcn/ui`.
     *   `src/pages/`: Contains top-level route components (e.g., `Index.tsx`, `Auth.tsx`).
-    *   `src/hooks/`: Custom React hooks (e.g., `use-auth.tsx`).
+    *   `src/hooks/`: Custom React hooks (`use-auth.tsx` etc).
     *   The overall structure aims for modularity and reusability.
 
-## Slack and LLM Setup Guidance
+## Slack and LLM Integration
 
-While not currently implemented, here's how you could integrate Slack or LLMs:
+This section outlines how Slack and Large Language Models (LLMs) are integrated, primarily through the `supabase/functions/summarize.ts` Edge Function. This enables features like generating summaries of user tasks and sending them as Slack notifications.
 
 *   **Slack Integration:**
-    *   **Purpose:** Send messages to channel on workspace(summarized tasks of the user).
+    *   **Purpose:** Enable users to receive LLM-generated summaries of their tasks directly in a Slack channel of their choice.
     *   **Method:**
-        1.  Create a Slack App and configure an Incoming Webhook for a specific channel.
-        2.  Store the Webhook URL securely as a secret in Supabase (Project Settings > Edge Functions > Add Secret).
-        3.  Create a Supabase Edge Function that receives data (e.g., a message) and sends a POST request to the Slack Webhook URL.
+        1.  **User-Provided Webhook:** Users need to create an "Incoming Webhook" in their Slack workspace for the specific channel where they wish to receive task summaries.
+        2.  **Profile Configuration:** The user's unique Slack Webhook URL is stored in their `profiles` table (within the `slack_webhook_url` field). This is typically managed through the user's profile settings page in the application.
+        3.  **`summarize` Edge Function Logic:** The `supabase/functions/summarize.ts` Edge Function, after successfully generating a task summary for the user (see LLM Integration details below):
+            *   Retrieves the `slack_webhook_url` from the authenticated user's profile.
+            *   If a valid URL is present, the function sends the generated summary as a POST request to this user-specific Slack Webhook URL.
 
 *   **LLM (Large Language Model) Integration:**
-    *   **Purpose:** Generate summary of user tasks
+    *   **Purpose:** Generate a concise, AI-powered summary of a user's tasks.
     *   **Method:**
-        1.  Choose an LLM provider (Google Gemini chosen in this case).
-        2.  Obtain an API key from the provider.
-        3.  Store the API key securely as a secret in Supabase.
-        4.  Create a Supabase Edge Function to act as a proxy to the LLM API. This function will take a prompt, call the LLM, and return the response. This keeps your API key off the client.
-        5.  Call this Edge Function from your React frontend (e.g., using `supabase.functions.invoke()`) to fetch and display LLM-generated content.
+        1.  **LLM Provider:** Google Gemini is used for its advanced natural language processing and summarization capabilities.
+        2.  **API Key:** An API key for Google Gemini must be obtained (from Google Cloud Console).
+        3.  **Store API Key as Secret:** This API key should be stored securely as a Supabase secret (e.g., `GEMINI_API_KEY` via Project Settings > Edge Functions > Add Secret). This keeps the key confidential and off the client-side.
+        4.  **`summarize` Edge Function (`supabase/functions/summarize.ts`):** This Supabase Edge Function is central to the LLM integration. It is responsible for:
+            *   Being invoked from the client-side, typically receiving user identification or the tasks to be summarized.
+            *   Securely accessing the `GEMINI_API_KEY` from Supabase secrets.
+            *   Constructing an appropriate prompt based on the user's tasks.
+            *   Making a server-to-server API call to the Google Gemini service.
+            *   Processing the LLM's response and returning the generated summary to the client application.
+        5.  **Client-Side Invocation:** The React frontend calls the `summarize` Edge Function (e.g., using `supabase.functions.invoke('summarize', { body: { /* relevant data like user_id or task list */ } })`) to trigger the summarization process and receive the result.
 
 ## Contributing
 
