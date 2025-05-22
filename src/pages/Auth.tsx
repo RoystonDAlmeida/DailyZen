@@ -35,10 +35,8 @@ const Auth = () => {
           });
         } else {
           // Email is confirmed, sign-in successful
-          toast({
-            title: "Success",
-            description: "You have been signed in.",
-          });
+          // "Successfully logged in!" toast is now handled by useAuth hook (sonner)
+          // for consistency and bottom placement.
           // Navigation to dashboard or protected route will typically be handled
           // by the AuthProvider listening to auth state changes.
         }
