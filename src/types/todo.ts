@@ -17,4 +17,5 @@ export interface TodoFormValues {
   title: string;
   description?: string;
   priority: TodoPriority;
+  completed?: boolean;  // Add completed as an optional property
 }
