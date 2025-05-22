@@ -1,0 +1,8 @@
+
+project_id = "plisvrfqkwlftlpzlbie"
+
+[functions.todos]
+verify_jwt = true
+
+[functions.summarize]
+verify_jwt = true
