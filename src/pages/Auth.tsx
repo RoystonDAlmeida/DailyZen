@@ -42,11 +42,29 @@ const Auth = () => {
           // Navigation to dashboard or protected route will typically be handled
           // by the AuthProvider listening to auth state changes.
         }
+      } else {
+        // This case handles when signIn resolves but no user is found (data.user is null)
+        // or data itself is null (though less likely if no error was thrown by signIn).
+        toast({
+          title: "Sign In Failed",
+          description: "User not found or invalid credentials. Please check your email and password.",
+          variant: "destructive",
+        });
       } // If signIn throws an error (e.g. wrong password), it's caught below.
     } catch (error) {
+      let toastTitle = "Error signing in";
+      let toastDescription = "An unexpected error occurred. Please try again.";
+
+      if (error instanceof Error && error.message === "Invalid login credentials") {
+        toastTitle = "Sign In Failed";
+        toastDescription = "User not found or invalid credentials. Please check your email and password.";
+      } else if (error instanceof Error) {
+        toastDescription = error.message;
+      }
+
       toast({
-        title: "Error signing in",
-        description: error instanceof Error ? error.message : "Please try again.",
+        title: toastTitle,
+        description: toastDescription,
         variant: "destructive",
       });
     } finally {
