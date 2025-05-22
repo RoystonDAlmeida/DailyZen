@@ -150,7 +150,7 @@ const Index = () => {
         </main>
         
         <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-          <DialogContent>
+          <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle>
                 {activeTodo ? 'Edit Task' : 'Add New Task'}
