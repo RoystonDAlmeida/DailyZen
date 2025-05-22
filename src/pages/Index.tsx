@@ -76,13 +76,13 @@ const Index = () => {
           user={user}
           onSignOut={signOut}
         />
-        <main className="flex-1 p-6">
-          <div className="container max-w-4xl">
-            <header className="flex items-center mb-6 border-b border-border pb-4">
+        <main className="flex-1 p-4 md:p-6 overflow-x-hidden"> {/* Reduced padding on mobile, ensure no overflow */}
+          <div className="max-w-4xl mx-auto"> {/* Replaces container for more control */}
+            <header className="flex items-center mb-6 border-b border-border pb-4 w-full"> {/* Ensure header takes full width */}
               {isMobile && (
                 <SidebarTrigger className="mr-3 h-10 w-10" />
               )}
-              <div className={`flex-1 flex ${isMobile ? 'flex-col items-start' : 'justify-between items-center'}`}>
+              <div className={`flex-1 flex flex-wrap ${isMobile ? 'flex-col items-start' : 'justify-between items-center'} gap-y-2`}>
                 <div className={`${isMobile ? 'w-full' : ''}`}> {/* Ensure text block takes full width on mobile if needed */}
                   <h1 className="text-3xl font-bold">
                     {activeView === 'all' ? 'All Tasks' : 
@@ -96,7 +96,7 @@ const Index = () => {
                       : `${completedTodos.length} completed tasks`}
                   </p>
                 </div>
-                <div className={`flex items-center gap-3 ${isMobile ? 'mt-4' : ''}`}>
+                <div className={`flex items-center gap-3 ${isMobile ? 'mt-4 w-full justify-start' : ''}`}>
                   <SlackSummarize />
                   <Button onClick={handleAddTodo}>
                     <Plus className="h-4 w-4 mr-2" />
