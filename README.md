@@ -14,8 +14,15 @@ A simple and calming to-do application designed to help you manage your tasks wi
   <img src="https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Vercel"/>
 </p>
 
+## 🎥 Demo
+
+Click on the screenshot to see the GIF in action.
+
+[![DailyZen Core Functionality Demo](./assets/dailyzen_preview.png)](./assets/dailyzen_demo.gif)
+
 ## 📜 Table of Contents
 - [DailyZen](#dailyzen)
+  - [🎥 Demo](#-demo)
   - [📜 Table of Contents](#-table-of-contents)
   - [Features](#features)
   - [Tech Stack](#tech-stack)
